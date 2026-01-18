@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Custom scrollbars for main areas */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #DBDBDB; border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #B0B0B0; }
+    </style>
+</head>
+<body class="bg-[#F0F2F5] h-screen overflow-hidden">
+    <!-- Header Placeholder (Will be included via data-include) -->
+    <!-- Note: In this specific messenger layout, the main header is integrated within the sidebar/chat view.
+         The shared header.html is a placeholder for global navigation if needed in the future. -->
+    <div data-include='header.html'></div>
+
+    <!-- Main Content Container with Top Margin to account for shared header (if sticky) -->
+    <!-- Using mt-0 here because the shared header is not used in this specific layout and we want full height.
+         If a header is added later, adjust to mt-16 or similar. -->
+    <div class="flex h-full mt-0">
+        
+        <!-- Chat List Sidebar -->
+        <div class="w-96 bg-white border-r border-[#DBDBDB] flex flex-col hidden md:flex">
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-[#DBDBDB] flex items-center justify-between">
+                <h1 class="text-xl font-semibold text-[#050505]">Chats</h1>
+                <button class="md:hidden text-[#65676B] hover:text-[#0084FF]" id="close-sidebar-btn">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <!-- Search Bar -->
+            <div class="p-4 pb-2">
+                <div class="relative">
+                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#65676B]" fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <input type="text" placeholder="Search Messenger" class="w-full bg-[#F0F2F5] rounded-full py-2 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-[#0084FF] transition-all">
+                </div>
+            </div>
+            <!-- Conversation List (Scrollable) -->
+            <div class="flex-1 overflow-y-auto custom-scroll" id="conversation-list">
+                <!-- Dynamic content will be loaded here or use included components -->
+                <!-- For demo, we'll generate static items using JS or include them directly -->
+            </div>
+            <!-- User Profile / Settings (Bottom) -->
+            <div class="p-4 border-t border-[#DBDBDB] flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">U</div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-[#050505] text-sm truncate">Your Profile</p>
+                    <p class="text-xs text-[#65676B]">Available</p>
+                </div>
+                <button class="text-[#65676B] hover:text-[#0084FF] p-1 rounded-full hover:bg-[#F0F2F5]">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat View Main Area -->
+        <div class="flex-1 flex flex-col h-full w-full" id="chat-view">
+            <!-- Mobile Chat View Header (Visible only on mobile when sidebar is hidden) -->
+            <div class="bg-white border-b border-[#DBDBDB] p-4 flex items-center justify-between md:hidden" id="mobile-chat-header">
+                <button class="text-[#65676B]" id="show-sidebar-btn">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                </button>
+                <div class="flex items-center" id="mobile-contact-info">
+                    <div class="w-8 h-8 rounded-full bg-gray-300 mr-2"></div>
+                    <div>
+                        <h2 class="font-semibold text-[#050505] text-sm">Select a chat</h2>
+                        <p class="text-xs text-[#65676B]">To start messaging</p>
+                    </div>
+                </div>
+                <button class="text-[#65676B]">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                </button>
+            </div>
+
+            <!-- Chat Header (PC) -->
+            <div class="bg-white border-b border-[#DBDBDB] p-4 flex items-center justify-between hidden md:flex" id="chat-header">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-gray-300 mr-3"></div>
+                    <div>
+                        <h2 class="font-semibold text-[#050505]">Select a chat</h2>
+                        <p class="text-xs text-[#65676B]">To start messaging</p>
+                    </div>
+                </div>
+                <div class="flex space-x-4 text-[#65676B]">
+                    <button class="hover:text-[#0084FF] transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                    </button>
+                    <button class="hover:text-[#0084FF] transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 15c1.66 0 2.99-1.34 2.99-3L15 6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 15 6.7 12H5c0 3.41 2.72 6.23 6 6.72V21h2v-2.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                    </button>
+                    <button class="hover:text-[#0084FF] transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Area (Scrollable) -->
+            <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-2 bg-[#F0F2F5]" id="messages-area">
+                <!-- Placeholder State (No Chat Selected) -->
+                <div class="flex items-center justify-center h-full text-center opacity-60" id="no-chat-placeholder">
+                    <div>
+                        <div class="w-24 h-24 rounded-full bg-gray-200 mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-[#050505] mb-2">Welcome to Messenger</h3>
+                        <p class="text-[#65676B]">Select a conversation from the sidebar to start messaging.</p>
+                    </div>
+                </div>
+                <!-- Messages will be dynamically added here -->
+            </div>
+
+            <!-- Input Area -->
+            <div class="bg-white border-t border-[#DBDBDB] p-4" id="input-area">
+                <div class="flex items-center space-x-2">
+                    <button class="text-[#65676B] hover:text-[#0084FF] transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+                    </button>
+                    <input type="text" id="message-input" placeholder="Type a message..." class="flex-1 bg-[#F0F2F5] rounded-full py-2 px-4 text-sm outline-none focus:ring-2 focus:ring-[#0084FF] transition-all disabled:opacity-50" disabled>
+                    <button id="send-btn" class="bg-[#0084FF] hover:bg-[#0066CC] text-white rounded-full p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Placeholder (Will be included via data-include) -->
+    <div data-include='footer.html'></div>
+
+    <!-- Include Handler Script (CRITICAL) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-include]').forEach(el => {
+                fetch(el.getAttribute('data-include'))
+                    .then(response => response.text())
+                    .then(data => {
+                        el.innerHTML = data;
+                        // Execute scripts found in specific component
+                        el.querySelectorAll('script').forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                            document.body.appendChild(newScript);
+                        });
+                    });
+            });
+        });
+    </script>
+
+    <!-- JavaScript for Messenger Logic (Vanilla JS) -->
+    <script>
+        // Data for demo conversations
+        const conversations = [
+            {
+                id: 1,
+                name: "Alice Johnson",
+                avatar: "bg-red-400",
+                lastMessage: "Hey, are you free for a call later?",
+                timestamp: "10:30 AM",
+                unread: 2,
+                active: false
+            },
+            {
+                id: 2,
+                name: "Bob Smith",
+                avatar: "bg-blue-400",
+                lastMessage: "The project files are ready for review.",
+                timestamp: "Yesterday",
+                unread: 0,
+                active: false
+            },
+            {
+                id: 3,
+                name: "Charlie Davis",
+                avatar: "bg-green-400",
+                lastMessage: "Lunch tomorrow at 1?",
+                timestamp: "Yesterday",
+                unread: 1,
+                active: false
+            },
+            {
+                id: 4,
+                name: "Diana Prince",
+                avatar: "bg-purple-400",
+                lastMessage: "Thanks for the help with the design!",
+                timestamp: "Mon",
+                unread: 0,
+                active: false
+            }
+        ];
+
+        // Sample messages for each conversation
+        const messagesData = {
+            1: [
+                { id: 1, sender: "Alice", text: "Hey, are you free for a call later?", time: "10:30 AM", type: "received" },
+                { id: 2, sender: "Me", text: "Yes, I should be free after 2 PM. Does that work?", time: "10:32 AM", type: "sent" },
+                { id: 3, sender: "Alice", text: "Perfect! I'll send you a calendar invite.", time: "10:33 AM", type: "received" },
+                { id: 4, sender: "Alice", text: "Also, did you get my email about the Q3 report?", time: "10:34 AM", type: "received" }
+            ],
+            2: [
+                { id: 1, sender: "Bob", text: "The project files are ready for review.", time: "Yesterday", type: "received" },
+                { id: 2, sender: "Me", text: "Great! I'll take a look this afternoon.", time: "Yesterday", type: "sent" }
+            ],
+            3: [
+                { id: 1, sender: "Charlie", text: "Lunch tomorrow at 1?", time: "Yesterday", type: "received" },
+                { id: 2, sender: "Me", text: "Sounds good. Where?", time: "Yesterday", type: "sent" },
+                { id: 3, sender: "Charlie", text: "The place downtown we went to last week.", time: "Yesterday", type: "received" }
+            ],
+            4: [
+                { id: 1, sender: "Diana", text: "Thanks for the help with the design!", time: "Mon", type: "received" },
+                { id: 2, sender: "Me", text: "No problem! Happy to help.", time: "Mon", type: "sent" },
+                { id: 3, sender: "Diana", text: "Let me know if you need anything else.", time: "Mon", type: "received" }
+            ]
+        };
+
+        // DOM Elements
+        const conversationListEl = document.getElementById('conversation-list');
+        const messagesAreaEl = document.getElementById('messages-area');
+        const noChatPlaceholderEl = document.getElementById('no-chat-placeholder');
+        const messageInputEl = document.getElementById('message-input');
+        const sendBtnEl = document.getElementById('send-btn');
+        const mobileChatHeaderEl = document.getElementById('mobile-chat-header');
+        const mobileContactInfoEl = document.getElementById('mobile-contact-info');
+        const chatViewEl = document.getElementById('chat-view');
+        const sidebarEl = document.querySelector('.w-96'); // Get sidebar element
+        const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+        const showSidebarBtn = document.getElementById('show-sidebar-btn');
+
+        let currentConversationId = null;
+
+        // Render Conversation List
+        function renderConversationList() {
+            conversationListEl.innerHTML = '';
+            conversations.forEach(conv => {
+                const convItem = document.createElement('div');
+                convItem.className = `flex items-center p-4 cursor-pointer transition-colors duration-150 ${conv.active ? 'bg-[#E4E6EB]' : 'hover:bg-[#F0F2F5]'}`;
+                convItem.dataset.id = conv.id;
+                
+                // Unread indicator
+                const unreadBadge = conv.unread > 0 ? `<span class="w-5 h-5 ${conv.unread === 1 ? 'bg-[#1877F2]' : 'bg-[#0084FF]'} rounded-full text-white text-xs flex items-center justify-center ml-auto flex-shrink-0">${conv.unread}</span>` : '';
+
+                convItem.innerHTML = `
+                    <div class="w-12 h-12 rounded-full ${conv.avatar} mr-4 flex items-center justify-center text-white font-semibold flex-shrink-0">${conv.name.charAt(0)}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-[#050505] truncate">${conv.name}</span>
+                            <span class="text-xs text-[#65676B] ml-2 flex-shrink-0">${conv.timestamp}</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-sm text-[#65676B] truncate">${conv.lastMessage}</span>
+                            ${unreadBadge}
+                        </div>
+                    </div>
+                `;
+
+                // Click handler for conversation
+                convItem.addEventListener('click', () => selectConversation(conv.id));
+                conversationListEl.appendChild(convItem);
+            });
+        }
+
+        // Select Conversation
+        function selectConversation(id) {
+            // Update active state
+            conversations.forEach(conv => conv.active = conv.id === id);
+            currentConversationId = id;
+
+            // Update UI
+            renderConversationList();
+            renderMessages(id);
+            updateChatHeader(id);
+            
+            // Enable input for mobile
+            if (window.innerWidth < 768) {
+                messageInputEl.disabled = false;
+                sendBtnEl.disabled = false;
+            } else {
+                messageInputEl.disabled = false;
+                sendBtnEl.disabled = false;
+            }
+
+            // On mobile, hide sidebar after selection
+            if (window.innerWidth < 768) {
+                sidebarEl.classList.add('hidden');
+            }
+        }
+
+        // Render Messages for selected conversation
+        function renderMessages(id) {
+            // Hide placeholder
+            noChatPlaceholderEl.classList.add('hidden');
+            
+            messagesAreaEl.innerHTML = '';
+            const messages = messagesData[id] || [];
+            
+            messages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `flex ${msg.type === 'sent' ? 'justify-end' : 'justify-start'} mb-2`;
+                
+                const bubbleClass = msg.type === 'sent' 
+                    ? 'bg-[#0084FF] text-white rounded-tl-lg rounded-tr-lg rounded-br-lg' 
+                    : 'bg-white text-[#050505] rounded-tl-lg rounded-tr-lg rounded-bl-lg border border-[#DBDBDB]';
+
+                msgDiv.innerHTML = `
+                    <div class="max-w-[70%] ${bubbleClass} px-4 py-2 shadow-sm">
+                        <p>${msg.text}</p>
+                        <span class="text-xs ${msg.type === 'sent' ? 'text-white/70' : 'text-[#65676B]'} block mt-1 text-right">${msg.time}</span>
+                    </div>
+                `;
+                messagesAreaEl.appendChild(msgDiv);
+            });
+
+            // Scroll to bottom
+            messagesAreaEl.scrollTop = messagesAreaEl.scrollHeight;
+        }
+
+        // Update Chat Header
+        function updateChatHeader(id) {
+            const conv = conversations.find(c => c.id === id);
+            if (!conv) return;
+
+            // PC Header
+            const headerHTML = `
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full ${conv.avatar} mr-3 flex items-center justify-center text-white font-semibold">${conv.name.charAt(0)}</div>
+                    <div>
+                        <h2 class="font-semibold text-[#050505]">${conv.name}</h2>
+                        <p class="text-xs text-[#65676B]">Active now</p>
+                    </div>
+                </div>
+            `;
+            const chatHeader = document.getElementById('chat-header');
+            if (chatHeader) {
+                // Only update the left part (profile info)
+                const leftPart = chatHeader.querySelector('.flex.items-center');
+                if (leftPart) leftPart.innerHTML = headerHTML;
+            }
+
+            // Mobile Header
+            if (mobileContactInfoEl) {
+                mobileContactInfoEl.innerHTML = `
+                    <div class="w-8 h-8 rounded-full ${conv.avatar} mr-2 flex items-center justify-center text-white font-semibold text-sm">${conv.name.charAt(0)}</div>
+                    <div>
+                        <h2 class="font-semibold text-[#050505] text-sm">${conv.name}</h2>
+                        <p class="text-xs text-[#65676B]">Active now</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Send Message
+        function sendMessage() {
+            const text = messageInputEl.value.trim();
+            if (!text || !currentConversationId) return;
+
+            const newMessage = {
+                id: Date.now(),
+                sender: "Me",
+                text: text,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                type: "sent"
+            };
+
+            // Add to data
+            if (!messagesData[currentConversationId]) {
+                messagesData[currentConversationId] = [];
+            }
+            messagesData[currentConversationId].push(newMessage);
+
+            // Update conversation last message
+            const conv = conversations.find(c => c.id === currentConversationId);
+            if (conv) {
+                conv.lastMessage = text;
+                conv.timestamp = "Now";
+            }
+
+            // Clear input
+            messageInputEl.value = '';
+
+            // Re-render UI
+            renderMessages(currentConversationId);
+            renderConversationList();
+        }
+
+        // Mobile Sidebar Toggle
+        function toggleMobileSidebar(show) {
+            if (window.innerWidth < 768) {
+                if (show) {
+                    sidebarEl.classList.remove('hidden');
+                } else {
+                    sidebarEl.classList.add('hidden');
+                }
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('click', (e) => {
+            // Send button click
+            if (e.target.closest('#send-btn')) {
+                sendMessage();
+            }
+            // Close sidebar on mobile
+            if (e.target.closest('#close-sidebar-btn')) {
+                toggleMobileSidebar(false);
+            }
+            // Show sidebar on mobile
+            if (e.target.closest('#show-sidebar-btn')) {
+                toggleMobileSidebar(true);
+            }
+        });
+
+        // Enter key to send
+        messageInputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Initialize
+        function init() {
+            renderConversationList();
+            
+            // Handle initial mobile state
+            if (window.innerWidth < 768) {
+                sidebarEl.classList.add('hidden');
+            }
+            
+            // Set up event listeners for input state
+            messageInputEl.addEventListener('input', () => {
+                const hasText = messageInputEl.value.trim().length > 0;
+                sendBtnEl.disabled = !hasText;
+            });
+        }
+
+        // Run init
+        init();
+    </script>
+</body>
+</html>
